@@ -1,0 +1,11 @@
+version: '3'
+services:
+    app:
+        build: ./
+        image: tesla-api-img
+        networks:
+            - tesla-api-network
+        ports:
+            - 3000:3000
+networks:
+    tesla-api-network:
