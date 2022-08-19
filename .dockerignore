@@ -1,0 +1,11 @@
+.git/
+.idea/
+bin/
+dist/
+helm/
+node_modules/
+.gitignore
+.env
+docker-compose.yaml
+Dockerfile
+README.md
