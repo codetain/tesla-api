@@ -1,4 +1,4 @@
-FROM node:16.16.0-alpine AS build
+FROM node:16.17.0-alpine AS build
 
 WORKDIR /home/node/app
 
@@ -10,7 +10,7 @@ COPY --chown=node:node . .
 
 RUN npm run build
 
-FROM node:16.16.0-alpine
+FROM node:16.17.0-alpine
 
 WORKDIR /home/node/app
 
