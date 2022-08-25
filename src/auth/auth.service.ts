@@ -3,20 +3,20 @@ import { URL } from 'url';
 const crypto = require('crypto');
 import { parse } from 'node-html-parser';
 import { HiddenInterface } from './interfaces/hiddenInterface';
+import { ResponseFromFirstGET } from './interfaces/ResponseFromFirstGET';
 
 @Injectable()
 export class AuthService {
 
     async login(){
-        const htmlPage :string | null = await this.firstGETrequest();
-        if(!htmlPage) throw new BadRequestException('HTML page did not GET');
-        const hiddenInputs = this.parseHTML(htmlPage)
-        console.log(hiddenInputs);
+        const responseFromFirstGet :ResponseFromFirstGET | null = await this.firstGETrequest();
+        if(!responseFromFirstGet) throw new BadRequestException('HTML page did not GET');
+        const hiddenInputs = this.parseHTML(responseFromFirstGet.htmlPage);
         
-        return htmlPage;
+        return responseFromFirstGet.htmlPage;
     }
 
-    async firstGETrequest(): Promise<string | null>{
+    async firstGETrequest(): Promise<ResponseFromFirstGET | null>{
         const firstURL = new URL(`https://auth.tesla.com/oauth2/v3/authorize`);
 
         const code_verifier:string = this.makeCodeVerifier(86);
@@ -40,7 +40,9 @@ export class AuthService {
         const res = await fetch(firstURL);
         if(res.ok){
             const htmlPage = await res.text();
-            return htmlPage;
+            const setCookie = await res.headers.get('set-cookie');
+            
+            return {htmlPage, setCookie} as ResponseFromFirstGET;
         }
         return null;
     }
