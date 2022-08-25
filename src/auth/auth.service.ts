@@ -6,7 +6,8 @@ const crypto = require('crypto');
 export class AuthService {
 
     async login(){
-        return this.firstGETrequest();
+        const htmlPage :string | null = await this.firstGETrequest();
+        return htmlPage
     }
 
     async firstGETrequest(): Promise<string | null>{
@@ -37,6 +38,8 @@ export class AuthService {
         }
         return null;
     }
+
+
 
     makeCodeVerifier(length: number): string {
         let result = '';

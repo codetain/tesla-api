@@ -26,6 +26,7 @@
     "@nestjs/passport": "^9.0.0",
     "@nestjs/platform-express": "^9.0.9",
     "crypto": "^1.0.1",
+    "node-html-parser": "^5.4.2-0",
     "passport": "^0.6.0",
     "passport-oauth2": "^1.6.1",
     "reflect-metadata": "^0.1.13",
