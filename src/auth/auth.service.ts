@@ -1,4 +1,4 @@
-import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { URL } from 'url';
 const crypto = require('crypto');
 import { parse } from 'node-html-parser';
