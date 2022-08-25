@@ -6,7 +6,7 @@ export class AuthController {
 
     constructor(private authService: AuthService){}
 
-    @Get('/login')
+    @Get('/token')
     login(){
         return this.authService.login();
     }
