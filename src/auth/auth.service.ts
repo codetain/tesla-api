@@ -2,6 +2,7 @@ import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
 import { URL } from 'url';
 const crypto = require('crypto');
 import { parse } from 'node-html-parser';
+import { HiddenInterface } from './interfaces/hiddenInterface';
 
 @Injectable()
 export class AuthService {
@@ -9,8 +10,8 @@ export class AuthService {
     async login(){
         const htmlPage :string | null = await this.firstGETrequest();
         if(!htmlPage) throw new BadRequestException('HTML page did not GET');
-        const data = this.parseHTML(htmlPage)
-        console.log(data);
+        const hiddenInputs = this.parseHTML(htmlPage)
+        console.log(hiddenInputs);
         
         return htmlPage;
     }
@@ -44,19 +45,18 @@ export class AuthService {
         return null;
     }
 
-    parseHTML(htmlPage: string) {
+    parseHTML(htmlPage: string): HiddenInterface {
         const root = parse(htmlPage);
 
         const _csrf = root.querySelector('input[name="_csrf"]')?.attrs.value;
         const _phase = root.querySelector('input[name="_phase"]')?.attrs.value;
         const cancel = root.querySelector('input[name="cancel"]')?.attrs.value;
         const transaction_id = root.querySelector('input[name="transaction_id"]')?.attrs.value;
-
-        // console.log(_csrf);
-        // console.log(_phase);
-        // console.log(cancel);
-        // console.log(transaction_id);
         
+        if(!_csrf || !_phase || !cancel || !transaction_id){
+            throw new BadRequestException('Hidden inputs not downloaded');
+        }
+
         return {_csrf, _phase, cancel, transaction_id};
     }
 
