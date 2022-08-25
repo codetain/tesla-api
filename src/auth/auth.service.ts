@@ -1,13 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
 import { URL } from 'url';
 const crypto = require('crypto');
+import { parse } from 'node-html-parser';
 
 @Injectable()
 export class AuthService {
 
     async login(){
         const htmlPage :string | null = await this.firstGETrequest();
-        return htmlPage
+        if(!htmlPage) throw new BadRequestException('HTML page did not GET');
+        const data = this.parseHTML(htmlPage)
+        console.log(data);
+        
+        return htmlPage;
     }
 
     async firstGETrequest(): Promise<string | null>{
@@ -39,7 +44,21 @@ export class AuthService {
         return null;
     }
 
+    parseHTML(htmlPage: string) {
+        const root = parse(htmlPage);
 
+        const _csrf = root.querySelector('input[name="_csrf"]')?.attrs.value;
+        const _phase = root.querySelector('input[name="_phase"]')?.attrs.value;
+        const cancel = root.querySelector('input[name="cancel"]')?.attrs.value;
+        const transaction_id = root.querySelector('input[name="transaction_id"]')?.attrs.value;
+
+        // console.log(_csrf);
+        // console.log(_phase);
+        // console.log(cancel);
+        // console.log(transaction_id);
+        
+        return {_csrf, _phase, cancel, transaction_id};
+    }
 
     makeCodeVerifier(length: number): string {
         let result = '';
