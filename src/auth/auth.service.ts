@@ -8,10 +8,20 @@ import { ResponseFromFirstGET } from './interfaces/ResponseFromFirstGET';
 @Injectable()
 export class AuthService {
 
+    private client_id: string = 'ownerapi';
+    private code_challenge_method: string = 'S256';
+    private redirect_uri: string = 'https://auth.tesla.com/void/callback';
+    private response_type: string = 'code';
+    private scope: string = 'openid email offline_access';
+    private state: string = '123';
+
     async login(){
         const responseFromFirstGet :ResponseFromFirstGET | null = await this.firstGETrequest();
         if(!responseFromFirstGet) throw new BadRequestException('HTML page did not GET');
         const hiddenInputs = this.parseHTML(responseFromFirstGet.htmlPage);
+
+        await this.secondPOSTrequest(responseFromFirstGet.setCookie, responseFromFirstGet.code_challenge);
+        
         
         return responseFromFirstGet.htmlPage;
     }
@@ -21,30 +31,48 @@ export class AuthService {
 
         const code_verifier:string = this.makeCodeVerifier(86);
 
-        const client_id = 'ownerapi';
         const code_challenge = crypto.createHash('sha256').update(code_verifier).digest('base64');
-        const code_challenge_method: string = 'S256';
-        const redirect_uri = 'https://auth.tesla.com/void/callback';
-        const response_type = 'code';
-        const scope = 'openid email offline_access';
-        const state = '123';
 
-        firstURL.searchParams.append('client_id', client_id);
+        firstURL.searchParams.append('client_id', this.client_id);
         firstURL.searchParams.append('code_challenge', code_challenge);
-        firstURL.searchParams.append('code_challenge_method', code_challenge_method);
-        firstURL.searchParams.append('redirect_uri', redirect_uri);
-        firstURL.searchParams.append('response_type', response_type);
-        firstURL.searchParams.append('scope', scope);
-        firstURL.searchParams.append('state', state);
+        firstURL.searchParams.append('code_challenge_method', this.code_challenge_method);
+        firstURL.searchParams.append('redirect_uri', this.redirect_uri);
+        firstURL.searchParams.append('response_type', this.response_type);
+        firstURL.searchParams.append('scope', this.scope);
+        firstURL.searchParams.append('state', this.state);
 
         const res = await fetch(firstURL);
         if(res.ok){
             const htmlPage = await res.text();
-            const setCookie = await res.headers.get('set-cookie');
+            const setCookie = res.headers.get('set-cookie');
             
-            return {htmlPage, setCookie} as ResponseFromFirstGET;
+            return {htmlPage, setCookie, code_challenge} as ResponseFromFirstGET;
         }
         return null;
+    }
+
+    async secondPOSTrequest(cookie: string, code_challenge: string){
+
+        const secondUrl = new URL('https://auth.tesla.com/oauth2/v3/authorize');
+
+        secondUrl.searchParams.append('client_id', this.client_id);
+        secondUrl.searchParams.append('code_challenge', code_challenge);
+        secondUrl.searchParams.append('code_challenge_method', this.code_challenge_method);
+        secondUrl.searchParams.append('redirect_uri', this.redirect_uri);
+        secondUrl.searchParams.append('response_type', this.response_type);
+        secondUrl.searchParams.append('scope', this.scope);
+        secondUrl.searchParams.append('state', this.state);
+
+        
+
+        const res = await fetch(secondUrl, {
+            method: 'POST', 
+            headers: {
+                'Cookie': cookie, 
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }, 
+            body: JSON.stringify({identity: process.env.IDENTITY, credential: process.env.CREDENTIAL, 'csrf': [value], })
+        })
     }
 
     parseHTML(htmlPage: string): HiddenInterface {
