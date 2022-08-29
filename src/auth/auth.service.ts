@@ -22,7 +22,9 @@ export class AuthService {
 
         const res = await this.secondPOSTrequest(responseFromFirstGet.setCookie, responseFromFirstGet.code_challenge, hiddenInputs);
         
+        console.log(res);
         
+
         return res;
     }
 
