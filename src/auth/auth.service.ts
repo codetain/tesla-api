@@ -20,10 +20,10 @@ export class AuthService {
         if(!responseFromFirstGet) throw new BadRequestException('HTML page did not GET');
         const hiddenInputs = this.parseHTML(responseFromFirstGet.htmlPage);
 
-        await this.secondPOSTrequest(responseFromFirstGet.setCookie, responseFromFirstGet.code_challenge);
+        const res = await this.secondPOSTrequest(responseFromFirstGet.setCookie, responseFromFirstGet.code_challenge, hiddenInputs);
         
         
-        return responseFromFirstGet.htmlPage;
+        return res;
     }
 
     async firstGETrequest(): Promise<ResponseFromFirstGET | null>{
@@ -51,7 +51,7 @@ export class AuthService {
         return null;
     }
 
-    async secondPOSTrequest(cookie: string, code_challenge: string){
+    async secondPOSTrequest(cookie: string, code_challenge: string, payload: HiddenInterface){
 
         const secondUrl = new URL('https://auth.tesla.com/oauth2/v3/authorize');
 
@@ -63,17 +63,40 @@ export class AuthService {
         secondUrl.searchParams.append('scope', this.scope);
         secondUrl.searchParams.append('state', this.state);
 
+        let formBody = [];
+
+        //@ts-ignore
+        payload.identity='elon@tesla.com';
+        //@ts-ignore
+        payload.credential='brbgoingtomars';
+
+        for(let property in payload){
+            let encodedKey = encodeURIComponent(property);
+            //@ts-ignore
+            let encodedValue = encodeURIComponent(payload[property]);
+            formBody.push(encodedKey + '=' + encodedValue);
+        }
+
+        //@ts-ignore
+        formBody = formBody.join("&");
         
 
         const res = await fetch(secondUrl, {
             method: 'POST', 
             headers: {
                 'Cookie': cookie, 
-                'Content-Type': 'application/x-www-form-urlencoded'
+                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
             }, 
-            body: JSON.stringify({identity: process.env.IDENTITY, credential: process.env.CREDENTIAL, 'csrf': [value], })
+            //@ts-ignore
+            body: formBody
         })
+
+        console.log(res.headers.get('location'));
+        return res
+        
     }
+
+    // {identity: process.env.IDENTITY, credential: process.env.CREDENTIAL, 'csrf': [value], }
 
     parseHTML(htmlPage: string): HiddenInterface {
         const root = parse(htmlPage);
