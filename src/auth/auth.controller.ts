@@ -7,7 +7,7 @@ export class AuthController {
     constructor(private authService: AuthService){}
 
     @Get('/token')
-    login(){
-        return this.authService.login();
+    async login(){
+        return await this.authService.login();
     }
 }
