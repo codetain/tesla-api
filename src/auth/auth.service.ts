@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { URL } from 'url';
-const crypto = require('crypto');
+const sha256 = require('sha256');
+import base64url from "base64url";
 import { parse } from 'node-html-parser';
 import { HiddenInterface } from './interfaces/hiddenInterface';
 import { ResponseFromFirstGET } from './interfaces/ResponseFromFirstGET';
@@ -33,7 +34,7 @@ export class AuthService {
 
         const code_verifier:string = this.makeCodeVerifier(86);
 
-        const code_challenge = crypto.createHash('sha256').update(code_verifier).digest('base64');
+        const code_challenge = base64url(sha256(code_verifier));        
 
         firstURL.searchParams.append('client_id', this.client_id);
         firstURL.searchParams.append('code_challenge', code_challenge);
