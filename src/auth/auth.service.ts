@@ -21,12 +21,11 @@ export class AuthService {
         if(!responseFromFirstGet) throw new BadRequestException('HTML page did not GET');
         const hiddenInputs = this.parseHTML(responseFromFirstGet.htmlPage);
 
-        const res = await this.secondPOSTrequest(responseFromFirstGet.setCookie, responseFromFirstGet.code_challenge, hiddenInputs);
+        const responseFromSecondPost = await this.secondPOSTrequest(responseFromFirstGet.setCookie, responseFromFirstGet.code_challenge, hiddenInputs);
         
-        console.log(res);
+        console.log(responseFromSecondPost);
         
-
-        return res;
+        return responseFromSecondPost;
     }
 
     async firstGETrequest(): Promise<ResponseFromFirstGET | null>{
