@@ -24,6 +24,9 @@ export class AuthService {
         const responseFromSecondPost = await this.secondPOSTrequest(responseFromFirstGet.setCookie, responseFromFirstGet.code_challenge, hiddenInputs);
         
         console.log(responseFromSecondPost);
+
+        console.log(await responseFromSecondPost.text());
+        
         
         return responseFromSecondPost;
     }
@@ -46,7 +49,7 @@ export class AuthService {
         const res = await fetch(firstURL);
         if(res.ok){
             const htmlPage = await res.text();
-            const setCookie = res.headers.get('set-cookie');
+            const setCookie = res.headers.get('Set-Cookie');
             
             return {htmlPage, setCookie, code_challenge} as ResponseFromFirstGET;
         }
